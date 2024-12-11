@@ -1,0 +1,104 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Корзина - Roblox Shop{% endblock %}
+
+{% block content %}
+<h1>Корзина</h1>
+<div class="row">
+    <div class="col-md-8">
+        <h2>Ваши товары</h2>
+        <ul class="list-group">
+            {% for item in cart_items %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-thumbnail" style="width: 80px; height: 80px; margin-right: 15px;">
+                    <h5>{{ item.product.name }}</h5>
+                    <p>{{ item.product.price }} Robux x {{ item.quantity }}</p>
+                </div>
+                <span>{{ item.product.price|floatformat:2 }} Robux</span>
+                <!-- Кнопка для удаления товара -->
+                <button class="btn btn-danger remove-from-cart" data-product-id="{{ item.product.id }}">Удалить</button>
+            </li>
+            {% empty %}
+            <p>Корзина пуста.</p>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="col-md-4">
+        <h2>Итого</h2>
+        <ul class="list-group mb-3">
+            <li class="list-group-item d-flex justify-content-between">
+                <span>Общая стоимость:</span>
+                <strong>{{ total_price|floatformat:2 }} Robux</strong>
+            </li>
+        </ul>
+        <a href="#" class="btn btn-success btn-lg btn-block" id="checkout-button">Перейти к оплате</a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrfToken = getCookie('csrftoken');
+
+    document.querySelectorAll('.remove-from-cart').forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+
+            const productId = this.getAttribute('data-product-id');
+
+            fetch("{% url 'remove_from_cart_ajax' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: new URLSearchParams({ 'product_id': productId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    location.reload(); // Перезагрузка страницы для обновления корзины
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+            });
+        });
+    });
+
+    // Обработчик для кнопки "Перейти к оплате"
+    const checkoutButton = document.getElementById('checkout-button');
+    checkoutButton.addEventListener('click', function(event) {
+        event.preventDefault(); // Отменяем стандартное поведение ссылки
+
+        // Проверяем, есть ли товары в корзине
+        const cartItems = document.querySelectorAll('.list-group-item');
+        if (cartItems.length === 1) {
+            alert('Корзина пуста. Добавьте товары в корзину, прежде чем продолжить.');
+            return; // Прерываем выполнение, если корзина пуста
+        }
+
+        // Если корзина не пуста, переходим на страницу оплаты
+        window.location.href = "{% url 'checkout' %}";
+    });
+});
+</script>
+{% endblock %}

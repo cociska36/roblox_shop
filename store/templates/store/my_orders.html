@@ -1,0 +1,61 @@
+
+<style>
+    .status-created {
+        color: blue;
+    }
+
+    .status-in-progress {
+        color: blue;
+    }
+
+    .status-completed {
+        color: green;
+    }
+
+    .status-rejected {
+        color: red;
+    }
+</style>
+
+{% extends 'store/base.html' %}
+
+{% block content %}
+<h1>Мои заказы</h1>
+
+{% if orders.exists %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Номер заказа</th>
+                <th>Цена</th>
+                <th>Товары</th>
+                <th>Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <!-- Номер заказа с ссылкой на страницу оплаты -->
+                <td><a href="{% url 'payment_confirmation' order.id %}">#{{ order.id }}</a></td>
+                <td>{{ order.price }} ₽</td>
+                <td>
+                    <ul>
+                        {% for item in order.items.all %}
+                        <li>{{ item.product.name }} ({{ item.quantity }} шт.)</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td class="{% if order.status == 'Created' %}status-created
+                           {% elif order.status == 'In progress' %}status-in-progress
+                           {% elif order.status == 'Completed' %}status-completed
+                           {% elif order.status == 'Rejected' %}status-rejected{% endif %}">
+                    {{ order.status }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p >У тебя еще нет заказов. Скорее <a href="{% url 'product_list' %}">выбирай товары</a>!</p>
+{% endif %}
+{% endblock %}

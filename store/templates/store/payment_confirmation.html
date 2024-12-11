@@ -1,0 +1,60 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Заказ #{{ order.id }}{% endblock %}
+
+{% block content %}
+{% if order.status == 'Created' %}
+<h1>Заказ #{{ order.id }} СОЗДАН</h1>
+{% elif order.status == 'In progress' %}
+<h1>Заказ #{{ order.id }} ВЫПОЛНЯЕТСЯ</h1>
+{% elif order.status == 'Completed' %}
+<h1>Заказ #{{ order.id }} ЗАВЕРШЕН</h1>
+{% elif order.status == 'Rejected' %}
+<h1>Заказ #{{ order.id }} ОТКЛОНЕН</h1>
+{% endif %}
+
+{% if order.status == 'Created' %}
+    <div class="alert alert-info">
+        В ближайшее время вам будет направлено на указанную электронную почту ссылка для оплаты. 
+        Вам необходимо перейти по ссылке и приобрести gamepass. После успешной покупки gamepass 
+        прикрепите изображение с его покупкой. Примерное время ожидания 5-10 минут.
+    </div>
+
+{% elif order.status == 'In progress' %}
+    <div class="alert alert-info">
+        Ссылка для покупки была отправлена на ваш электронный адрес {{ order.email }}. Для завершения покупки 
+        купите gamepass по ссылке, отправьте ответное письмо, прикрепив изображение, подтверждающее покупку 
+        и нажмите кнопку "Я купил".
+    </div>
+    <button id="bought-button" class="btn btn-primary">Я купил</button>
+
+{% elif order.status == 'Completed' %}
+    <div class="alert alert-success">
+        Товар был успешно доставлен. Спасибо за покупку!
+    </div>
+
+{% elif order.status == 'Rejected' %}
+    <div class="alert alert-danger">
+        Ваш заказ был отменен по техническим причинам.
+    </div>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const boughtButton = document.getElementById('bought-button');
+        const confirmationMessage = document.getElementById('confirmation-message');
+
+        if (boughtButton) {
+            boughtButton.addEventListener('click', function() {
+                confirmationMessage.style.display = 'block';
+                boughtButton.style.display = 'none';
+            });
+        }
+    });
+</script>
+
+<div id="confirmation-message" style="display: none;">
+    <p>Спасибо за покупку! В ближайшее время наш администратор проверит информацию и отправит вам товар по игровой почте (Post Office)</p>
+</div>
+{% endblock %}
+
